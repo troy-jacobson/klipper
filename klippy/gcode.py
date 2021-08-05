@@ -172,7 +172,7 @@ class GCodeDispatch:
             origline = line + " " + line_in
         comatch = self.end_object_regex.match(line_in)
         if comatch:
-            line = "END_CURRENT_OBJECT NAME=__NONE__"
+            line = "END_CURRENT_OBJECT"
             origline = line + " " + line_in
         return line, origline
 
