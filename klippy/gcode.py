@@ -89,6 +89,7 @@ class GCodeDispatch:
         self.ready_gcode_handlers = {}
         self.mux_commands = {}
         self.gcode_help = {}
+        self.has_excluded_region = False
         self.start_object_regex = re.compile("; printing object (.*)")
         self.end_object_regex = re.compile("; stop printing object.*")
         # Register commands needed before config file is loaded

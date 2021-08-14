@@ -24,7 +24,8 @@ class ExcludeRegion:
         self.current_object = ""
         self.in_excluded_region = False
         self.last_position = [0., 0., 0., 0.]
-        self.last_delta = [0., 0., 0., 0.]
+        self.last_position_extruded = [0., 0., 0., 0.]
+        self.last_position_excluded = [0., 0., 0., 0.]
         self.gcode.register_command(
             'START_CURRENT_OBJECT', self.cmd_START_CURRENT_OBJECT,
             desc=self.cmd_START_CURRENT_OBJECT_help)
@@ -32,8 +33,8 @@ class ExcludeRegion:
             'END_CURRENT_OBJECT', self.cmd_END_CURRENT_OBJECT,
             desc=self.cmd_END_CURRENT_OBJECT_help)
         self.gcode.register_command(
-            'CANCEL_OBJECT', self.cmd_CANCEL_OBJECT,
-            desc=self.cmd_CANCEL_OBJECT_help)
+            'EXCLUDE_OBJECT', self.cmd_EXCLUDE_OBJECT,
+            desc=self.cmd_EXCLUDE_OBJECT_help)
         self.gcode.register_command(
             'REMOVE_ALL_EXCLUDED', self.cmd_REMOVE_ALL_EXCLUDED,
             desc=self.cmd_REMOVE_ALL_EXCLUDED_help)
@@ -48,26 +49,33 @@ class ExcludeRegion:
         return list(self.last_position)
 
     def _normal_move(self, newpos, speed):
-        self.last_delta = [newpos[i] - self.last_position[i] for i in range(4)]
+        self.last_position_extruded[:] = newpos
         self.last_position[:] = newpos
         self.next_transform.move(newpos, speed)
 
     def _ignore_move(self, newpos, speed):
+        self.last_position_excluded[:] = newpos
+        self.last_position[:] = newpos
         return
 
     def _move_into_excluded_region(self, newpos, speed):
         logging.info("Moving to excluded object: " + self.current_object)
         self.in_excluded_region = True
-        self.last_extruder = newpos[3]
+        self.last_position_excluded[:] = newpos
+        self.last_position[:] = newpos
 
     def _move_from_excluded_region(self, newpos, speed):
         logging.info("Moving to included object: " + self.current_object)
-        logging.info("Filament position: " + str(self.last_extruder))
-        logging.info("last_position: " + " ".join(str(x) for x in self.last_position))
+        logging.info("last position: " + " ".join(str(x) for x in self.last_position))
+        logging.info("last extruded position: " + " ".join(str(x) for x in self.last_position_extruded))
+        logging.info("last excluded position: " + " ".join(str(x) for x in self.last_position_excluded))
         logging.info("New position: " + " ".join(str(x) for x in newpos))
-        self.last_delta = [newpos[i] - self.last_position[i] for i in range(4)]
-        newpos[3] = self.last_extruder
+        newpos[0] = newpos[0] - self.last_position_excluded[0] + self.last_position_extruded[0]
+        newpos[1] = newpos[1] - self.last_position_excluded[1] + self.last_position_extruded[1]
+        newpos[3] = newpos[3] - self.last_position_excluded[3] + self.last_position_extruded[3]
+        logging.info("Modified position: " + " ".join(str(x) for x in newpos))
         self.last_position[:] = newpos
+        self.last_position_extruded[:] = newpos
         self.next_transform.move(newpos, speed)
         self.in_excluded_region = False
 
@@ -96,8 +104,8 @@ class ExcludeRegion:
     cmd_END_CURRENT_OBJECT_help = "Markes the end the current object"
     def cmd_END_CURRENT_OBJECT(self, params):
         self.current_object = ""
-    cmd_CANCEL_OBJECT_help = "Cancel moves inside a specified objects"
-    def cmd_CANCEL_OBJECT(self, params):
+    cmd_EXCLUDE_OBJECT_help = "Cancel moves inside a specified objects"
+    def cmd_EXCLUDE_OBJECT(self, params):
         name = params.get_command_parameters()['NAME'].upper()
         if name not in self.objects:
             self.objects.append(name)
