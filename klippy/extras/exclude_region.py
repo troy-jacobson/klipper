@@ -20,6 +20,8 @@ class ExcludeRegion:
         # Now ExcludeRegion can register its own event handler
         self.printer.register_event_handler("klippy:ready",
                                             self._handle_ready)
+        self.printer.register_event_handler("sdcard:reset_file",
+                                            self._handle_reset_file)
         self.objects = []
         self.current_object = ""
         self.in_excluded_region = False
@@ -111,6 +113,8 @@ class ExcludeRegion:
             self.objects.append(name)
     cmd_REMOVE_ALL_EXCLUDED_help = "Removes all excluded objects and regions"
     def cmd_REMOVE_ALL_EXCLUDED(self, params):
+        self._handle_reset_file
+    def _handle_reset_file(self):
         self.objects = []
 
 def load_config(config):
