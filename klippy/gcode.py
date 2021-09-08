@@ -89,9 +89,6 @@ class GCodeDispatch:
         self.ready_gcode_handlers = {}
         self.mux_commands = {}
         self.gcode_help = {}
-        self.has_excluded_region = False
-        self.start_object_regex = re.compile("; printing object (.*)")
-        self.end_object_regex = re.compile("; stop printing object.*")
         # Register commands needed before config file is loaded
         handlers = ['M110', 'M112', 'M115',
                     'RESTART', 'FIRMWARE_RESTART', 'ECHO', 'STATUS', 'HELP']
@@ -156,26 +153,7 @@ class GCodeDispatch:
     def _handle_ready(self):
         self.is_printer_ready = True
         self.gcode_handlers = self.ready_gcode_handlers
-        self.has_excluded_region = self.printer.lookup_object('exclude_region', None) is not None
         self._respond_state("Ready")
-
-    def _identify_object_markup(self, line_in):
-        if not self.has_excluded_region:
-            return line_in, line_in
-
-        line = origline = line_in
-        # The original line needs to be modified, too, as the parser
-        # uses it in a later step.
-        comatch = self.start_object_regex.match(line_in)
-        if comatch:
-            name = comatch.group(1).replace(" ", "_")
-            line = "START_CURRENT_OBJECT NAME=" + name
-            origline = line + " " + line_in
-        comatch = self.end_object_regex.match(line_in)
-        if comatch:
-            line = "END_CURRENT_OBJECT"
-            origline = line + " " + line_in
-        return line, origline
 
     # Parse input into commands
     args_r = re.compile('([A-Z_]+|[A-Z*/])')
