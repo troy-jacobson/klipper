@@ -154,7 +154,6 @@ class GCodeDispatch:
         self.is_printer_ready = True
         self.gcode_handlers = self.ready_gcode_handlers
         self._respond_state("Ready")
-
     # Parse input into commands
     args_r = re.compile('([A-Z_]+|[A-Z*/])')
     def _process_commands(self, commands, need_ack=True):
