@@ -160,7 +160,7 @@ class GCodeDispatch:
     def _process_commands(self, commands, need_ack=True):
         for line in commands:
             # Ignore comments and leading/trailing spaces
-            line, origline = self._identify_object_markup(line.strip())
+            line = origline = line.strip()
             cpos = line.find(';')
             if cpos >= 0:
                 line = line[:cpos]
