@@ -23,6 +23,7 @@ class ExcludeRegion:
         self.printer.register_event_handler("sdcard:reset_file",
                                             self._handle_reset_file)
         self.objects = []
+        self.excluded_objects = []
         self.current_object = ""
         self.in_excluded_region = False
         self.last_position = [0., 0., 0., 0.]
@@ -40,6 +41,15 @@ class ExcludeRegion:
         self.gcode.register_command(
             'REMOVE_ALL_EXCLUDED', self.cmd_REMOVE_ALL_EXCLUDED,
             desc=self.cmd_REMOVE_ALL_EXCLUDED_help)
+        self.gcode.register_command(
+            'DEFINE_OBJECT', self.cmd_DEFINE_OBJECT,
+            desc=self.cmd_DEFINE_OBJECT_help)
+        self.gcode.register_command(
+            'LIST_OBJECTS', self.cmd_LIST_OBJECTS,
+            desc=self.cmd_LIST_OBJECTS_help)
+        self.gcode.register_command(
+            'LIST_EXCLUDED_OBJECTS', self.cmd_LIST_EXCLUDED_OBJECTS,
+            desc=self.cmd_LIST_EXCLUDED_OBJECTS_help)
         # debugging
         self.current_region = None
     def _handle_ready(self):
@@ -83,7 +93,7 @@ class ExcludeRegion:
 
     def _test_in_excluded_region(self):
         # Inside cancelled object
-        if self.current_object in self.objects:
+        if self.current_object in self.excluded_objects:
             return True
 
     def move(self, newpos, speed):
@@ -102,20 +112,38 @@ class ExcludeRegion:
 
     cmd_START_CURRENT_OBJECT_help = "Marks the beginning the current object as labeled"
     def cmd_START_CURRENT_OBJECT(self, params):
-        self.current_object = params.get_command_parameters()['NAME'].upper()
+        name = params.get_command_parameters()['NAME'].upper()
+        if name not in self.objects:
+            self.objects.append(name)
+        self.current_object = name
     cmd_END_CURRENT_OBJECT_help = "Markes the end the current object"
     def cmd_END_CURRENT_OBJECT(self, params):
         self.current_object = ""
     cmd_EXCLUDE_OBJECT_help = "Cancel moves inside a specified objects"
     def cmd_EXCLUDE_OBJECT(self, params):
         name = params.get_command_parameters()['NAME'].upper()
-        if name not in self.objects:
-            self.objects.append(name)
+        if name not in self.excluded_objects:
+            self.excluded_objects.append(name)
     cmd_REMOVE_ALL_EXCLUDED_help = "Removes all excluded objects and regions"
     def cmd_REMOVE_ALL_EXCLUDED(self, params):
         self._handle_reset_file
+    cmd_LIST_OBJECTS_help = "Lists the known objects"
+    def cmd_LIST_OBJECTS(self, gcmd):
+        object_list = " ".join (str(x) for x in self.objects)
+        gcmd.respond_info(object_list)
+    cmd_LIST_EXCLUDED_OBJECTS_help = "Lists the excluded objects"
+    def cmd_LIST_EXCLUDED_OBJECTS(self, gcmd):
+        object_list = " ".join (str(x) for x in self.excluded_objects)
+        gcmd.respond_info(object_list)
+    cmd_DEFINE_OBJECT_help = "Provides a summary of an object"
+    def cmd_DEFINE_OBJECT(self, params):
+        name = params.get_command_parameters()['NAME'].upper()
+        if name not in self.objects:
+            self.objects.append(name)
+
     def _handle_reset_file(self):
         self.objects = []
+        self.excluded_objects = []
 
 def load_config(config):
     return ExcludeRegion(config)
