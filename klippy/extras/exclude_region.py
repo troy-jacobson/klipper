@@ -6,6 +6,8 @@
 
 import math
 import logging
+import json
+from datetime import datetime
 
 class ExcludeRegion:
     def __init__(self, config):
@@ -22,7 +24,7 @@ class ExcludeRegion:
                                             self._handle_ready)
         self.printer.register_event_handler("sdcard:reset_file",
                                             self._handle_reset_file)
-        self.objects = []
+        self.objects = {}
         self.excluded_objects = []
         self.current_object = ""
         self.in_excluded_region = False
@@ -96,6 +98,15 @@ class ExcludeRegion:
         if self.current_object in self.excluded_objects:
             return True
 
+    def get_status(self, eventtime=None):
+        status = {
+            "test": "yes, a status",
+            "objects": json.dumps(self.objects.values()),
+            "excluded_objects": json.dumps(self.excluded_objects),
+            "current_object": self.current_object
+        }
+        return status
+
     def move(self, newpos, speed):
         move_in_excluded_region = self._test_in_excluded_region()
 
@@ -114,7 +125,10 @@ class ExcludeRegion:
     def cmd_START_CURRENT_OBJECT(self, params):
         name = params.get_command_parameters()['NAME'].upper()
         if name not in self.objects:
-            self.objects.append(name)
+            obj = {
+                "name": name
+            }
+            self.objects[name] = obj
         self.current_object = name
     cmd_END_CURRENT_OBJECT_help = "Markes the end the current object"
     def cmd_END_CURRENT_OBJECT(self, params):
@@ -126,10 +140,11 @@ class ExcludeRegion:
             self.excluded_objects.append(name)
     cmd_REMOVE_ALL_EXCLUDED_help = "Removes all excluded objects and regions"
     def cmd_REMOVE_ALL_EXCLUDED(self, params):
-        self._handle_reset_file
+        logging.info("cmd_remove_all_excluded")
+        self._handle_reset_file()
     cmd_LIST_OBJECTS_help = "Lists the known objects"
     def cmd_LIST_OBJECTS(self, gcmd):
-        object_list = " ".join (str(x) for x in self.objects)
+        object_list = " ".join (str(x) for x in self.objects.values())
         gcmd.respond_info(object_list)
     cmd_LIST_EXCLUDED_OBJECTS_help = "Lists the excluded objects"
     def cmd_LIST_EXCLUDED_OBJECTS(self, gcmd):
@@ -138,11 +153,21 @@ class ExcludeRegion:
     cmd_DEFINE_OBJECT_help = "Provides a summary of an object"
     def cmd_DEFINE_OBJECT(self, params):
         name = params.get_command_parameters()['NAME'].upper()
+        center = params.get_command_parameters()['CENTER'].upper()
+        outline = params.get_command_parameters()['POLYGON'].upper()
+
+        obj = {
+            "name": name,
+            "center": [float(coord) for coord in center.split(',')],
+            "outline": json.loads(outline)
+        }
+
         if name not in self.objects:
-            self.objects.append(name)
+            self.objects[name] = obj
 
     def _handle_reset_file(self):
-        self.objects = []
+        logging.info("handle_reset_file")
+        self.objects = {}
         self.excluded_objects = []
 
 def load_config(config):
