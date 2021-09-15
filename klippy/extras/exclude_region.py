@@ -84,8 +84,11 @@ class ExcludeRegion:
         logging.info("last extruded position: " + " ".join(str(x) for x in self.last_position_extruded))
         logging.info("last excluded position: " + " ".join(str(x) for x in self.last_position_excluded))
         logging.info("New position: " + " ".join(str(x) for x in newpos))
-        newpos[0] = newpos[0] - self.last_position_excluded[0] + self.last_position_extruded[0]
-        newpos[1] = newpos[1] - self.last_position_excluded[1] + self.last_position_extruded[1]
+        if self.last_position[0] == newpos[0] and self.last_position[1] == newpos[1]:
+            # If the X,Y position didn't change for this transitional move, assume that this move
+            # should happen at the last extruded location
+            newpos[0] = self.last_position_extruded[0]
+            newpos[1] = self.last_position_extruded[1]
         newpos[3] = newpos[3] - self.last_position_excluded[3] + self.last_position_extruded[3]
         logging.info("Modified position: " + " ".join(str(x) for x in newpos))
         self.last_position[:] = newpos
