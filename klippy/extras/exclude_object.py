@@ -101,7 +101,7 @@ class ExcludeObject:
 
     def get_status(self, eventtime=None):
         status = {
-            "objects": self.objects.values(),
+            "objects": list(self.objects.values()),
             "excluded_objects": list(self.excluded_objects),
             "current_object": self.current_object
         }
@@ -131,8 +131,8 @@ class ExcludeObject:
             gcmd.respond_info("END_CURRENT_OBJECT called, but no object is currently active")
             return
         name = gcmd.get('NAME', default=None)
-        if name != None and name != self.current_object:
-            gcmd.respond_info("END_CURRENT_OBJECT NAME=%s does not match current objet NAME=%s" % (name, self.current_object))
+        if name != None and name.upper() != self.current_object:
+            gcmd.respond_info("END_CURRENT_OBJECT NAME=%s does not match current objet NAME=%s" % (name.upper(), self.current_object))
         self.current_object = None
     cmd_EXCLUDE_OBJECT_help = "Cancel moves inside a specified objects"
     def cmd_EXCLUDE_OBJECT(self, params):
