@@ -101,8 +101,8 @@ class ExcludeObject:
 
     def get_status(self, eventtime=None):
         status = {
-            "objects": json.dumps(self.objects.values()),
-            "excluded_objects": json.dumps(self.excluded_objects),
+            "objects": self.objects.values(),
+            "excluded_objects": list(self.excluded_objects),
             "current_object": self.current_object
         }
         return status
