@@ -1406,6 +1406,13 @@ Enable the "M118" and "RESPOND" extended
 #   override the "default_type".
 ```
 
+## [exclude_objects]
+Enables features to exclude or cancel individual objects being printed.
+
+See the [exclude objects guide](exclude_objects.md) and
+[command reference](G-Codes.md#exclude_objects)
+for additional information.
+
 # Resonance compensation
 
 ## [input_shaper]
