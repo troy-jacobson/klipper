@@ -661,7 +661,7 @@ is enabled (also see the [skew correction guide](skew_correction.md)):
   memory permanent.
 
 
-## Exclude Objects
+## Exclude Object
 The following commands are available when an
 [exclude_object config section](Config_Reference.md#exclude_object) is
 enabled (also see the [exclude object guide](Exclude_Object.md)):
