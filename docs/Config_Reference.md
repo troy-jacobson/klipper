@@ -1411,7 +1411,7 @@ Enables support to exclude or cancel individual objects during the printing
 process.
 
 See the [exclude objects guide](Exclude_Object.md) and
-[command reference](G-Codes.md#exclude_objects)
+[command reference](G-Codes.md#exclude-object)
 for additional information.
 
 # Resonance compensation

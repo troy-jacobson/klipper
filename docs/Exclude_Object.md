@@ -1,6 +1,8 @@
 # Exclude Obects
 
 The `[exclude_object]` module allows Klipper to exclude objects while a print is in progress.
+To enable this feature include an [exclude_object config section](Config_Reference.md#exclude_object)
+(also see the [command reference](G-Codes.md#resonance-compensation).)
 
 Unlike other 3D printer firmware options, a printer running Klipper is utilizing a suite of
 components and users have many options to choose from.  Therefore, in order to provide a
@@ -83,7 +85,7 @@ encounters it in the file.
 containing known objects, cancelled objects, and the name of the current object.
 
 ## Status Infomation
-The state of this module is provided to clients by the [exclude_object status](Status_reference.md#exclude_object).
+The state of this module is provided to clients by the [exclude_object status](Status_Reference.md#exclude_object).
 
 The status is reset when:
 - The Klipper firmware is restarted.
