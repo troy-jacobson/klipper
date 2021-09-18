@@ -50,12 +50,11 @@ The following information is available in the
   forward direction minus the total number of steps taken in the
   reverse direction since the micro-controller was last restarted.
 
-# exclude_objects
+# exclude_object
 
-The following inforation is avaialbe in the [exclude_objects](Config_reference.md#exclude_object) object:
-- `objects`:  A JSON formated string representation of the known objects.  This is the same information
-  provided by the `LIST_OBJECTS` command.  It is an array of JSON objects representing objects (being printed)
-  as provided by the `DEFINE_OBJECT` command, and the `center` and `polygon` fields will not be present if they
+The following inforation is avaialbe in the [exclude_object](Exclude_Object.md) object:
+- `objects`:  An array of the known objects as provided by the `DEFINE_OBJECT` command.  This is the same information
+  provided by the `LIST_OBJECTS` command.  The `center` and `polygon` fields will not be present if they
   weren't provided.  Here is a JSON sample:
 ```
 [
@@ -80,8 +79,10 @@ The following inforation is avaialbe in the [exclude_objects](Config_reference.m
     "center": [ 150, 150 ]
   }
 ]
-- `excluded_objects`: An array of strings listing the names of excluded objects.  May be empty.
+```
+- `excluded_objects`: An array of strings listing the names of excluded objects.
 - `current_object`: The name of the object currently being printed.
+
 # fan
 
 The following information is available in

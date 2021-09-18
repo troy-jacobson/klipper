@@ -1406,10 +1406,11 @@ Enable the "M118" and "RESPOND" extended
 #   override the "default_type".
 ```
 
-## [exclude_objects]
-Enables features to exclude or cancel individual objects being printed.
+## [exclude_object]
+Enables support to exclude or cancel individual objects during the printing
+process.
 
-See the [exclude objects guide](exclude_objects.md) and
+See the [exclude objects guide](Exclude_Object.md) and
 [command reference](G-Codes.md#exclude_objects)
 for additional information.
 

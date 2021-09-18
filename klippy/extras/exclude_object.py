@@ -173,6 +173,7 @@ class ExcludeObject:
         logging.info("handle_reset_file")
         self.objects = {}
         self.excluded_objects = []
+        self.current_object = None
 
 def load_config(config):
     return ExcludeObject(config)
