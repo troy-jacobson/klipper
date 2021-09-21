@@ -71,13 +71,13 @@ class ExcludeObject:
         return
 
     def _move_into_excluded_region(self, newpos, speed):
-        logging.info("Moving to excluded object: " + self.current_object)
+        logging.debug("Moving to excluded object: " + (self.current_object or "---"))
         self.in_excluded_region = True
         self.last_position_excluded[:] = newpos
         self.last_position[:] = newpos
 
     def _move_from_excluded_region(self, newpos, speed):
-        logging.debug("Moving to included object: " + self.current_object)
+        logging.debug("Moving to included object: " + (self.current_object or "---"))
         logging.debug("last position: " + " ".join(str(x) for x in self.last_position))
         logging.debug("last extruded position: " + " ".join(str(x) for x in self.last_position_extruded))
         logging.debug("last excluded position: " + " ".join(str(x) for x in self.last_position_excluded))
