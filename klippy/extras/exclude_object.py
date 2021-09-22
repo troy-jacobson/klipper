@@ -147,7 +147,10 @@ class ExcludeObject:
         self._reset_file()
     cmd_LIST_OBJECTS_help = "Lists the known objects"
     def cmd_LIST_OBJECTS(self, gcmd):
-        object_list = " ".join (str(x) for x in self.objects.values())
+        if gcmd.get('JSON', None) is not None:
+            object_list = " ".join (str(x) for x in self.objects.values())
+        else:
+            object_list = " ".join(self.objects.keys())
         gcmd.respond_info(object_list)
     cmd_LIST_EXCLUDED_OBJECTS_help = "Lists the excluded objects"
     def cmd_LIST_EXCLUDED_OBJECTS(self, gcmd):
