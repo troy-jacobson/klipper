@@ -13,17 +13,10 @@ class ExcludeObject:
     def __init__(self, config):
         self.printer = config.get_printer()
         self.gcode = self.printer.lookup_object('gcode')
-        # Temporary workaround to get skew_correction to register
-        # its "klippy:ready" event handler before Exclude Region.  Exclude
-        # Region needs to be the highest priority transform, thus it must be
-        # the last module that calls set_move_transform()
-        if config.has_section('skew_correction'):
-            self.printer.try_load_module(config, 'skew_correction')
-        # Now ExcludeRegion can register its own event handler
-        self.printer.register_event_handler("klippy:ready",
-                                            self._handle_ready)
+        self.gcode_move = self.printer.lookup_object('gcode_move')
         self.printer.register_event_handler("sdcard:reset_file",
-                                            self._handle_reset_file)
+                                            self._reset_file)
+        self.next_transform = None
         self.objects = {}
         self.excluded_objects = []
         self.current_object = None
@@ -52,9 +45,19 @@ class ExcludeObject:
         self.gcode.register_command(
             'LIST_EXCLUDED_OBJECTS', self.cmd_LIST_EXCLUDED_OBJECTS,
             desc=self.cmd_LIST_EXCLUDED_OBJECTS_help)
-    def _handle_ready(self):
-        gcode_move = self.printer.lookup_object('gcode_move')
-        self.next_transform = gcode_move.set_move_transform(self, force=True)
+    def _setup_transform(self):
+        if not self.next_transform:
+            logging.debug('Enabling ExcludeObject as a move transform')
+            self.next_transform = self.gcode_move.set_move_transform(self, force=True)
+    def _reset_file(self):
+        self.objects = {}
+        self.excluded_objects = []
+        self.current_object = None
+        if self.next_transform:
+            logging.debug('Disabling ExcludeObject as a move transform')
+            self.gcode_move.set_move_transform(self.next_transform, force=True)
+            self.next_transform = None
+
     def get_position(self):
         self.last_position[:] = self.next_transform.get_position()
         self.last_delta = [0., 0., 0., 0.]
@@ -141,7 +144,7 @@ class ExcludeObject:
             self.excluded_objects.append(name)
     cmd_EXCLUDE_OBJECT_RESET_help = "Resets the exclude_object state by clearing the list of object definitions and removed objects"
     def cmd_EXCLUDE_OBJECT_RESET(self, params):
-        self._handle_reset_file()
+        self._reset_file()
     cmd_LIST_OBJECTS_help = "Lists the known objects"
     def cmd_LIST_OBJECTS(self, gcmd):
         object_list = " ".join (str(x) for x in self.objects.values())
@@ -152,6 +155,8 @@ class ExcludeObject:
         gcmd.respond_info(object_list)
     cmd_DEFINE_OBJECT_help = "Provides a summary of an object"
     def cmd_DEFINE_OBJECT(self, params):
+        self._setup_transform()
+
         name = params.get('NAME').upper()
         center = params.get('CENTER', default=None)
         polygon = params.get('POLYGON', default=None)
@@ -167,13 +172,9 @@ class ExcludeObject:
         if polygon != None:
             obj['polygon'] = json.loads(polygon)
 
+        logging.debug('Object {} defined {}', name, json.dumps(obj))
         self.objects[name] = obj
 
-    def _handle_reset_file(self):
-        logging.info("handle_reset_file")
-        self.objects = {}
-        self.excluded_objects = []
-        self.current_object = None
 
 def load_config(config):
     return ExcludeObject(config)
