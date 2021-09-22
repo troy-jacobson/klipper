@@ -48,7 +48,8 @@ class ExcludeObject:
     def _setup_transform(self):
         if not self.next_transform:
             logging.debug('Enabling ExcludeObject as a move transform')
-            self.next_transform = self.gcode_move.set_move_transform(self, force=True)
+            self.next_transform = self.gcode_move.set_move_transform(self,
+                                                                     force=True)
     def _reset_file(self):
         self.objects = {}
         self.excluded_objects = []
@@ -74,23 +75,30 @@ class ExcludeObject:
         return
 
     def _move_into_excluded_region(self, newpos, speed):
-        logging.debug("Moving to excluded object: " + (self.current_object or "---"))
+        logging.debug("Moving to excluded object: %s",
+                      (self.current_object or "---"))
         self.in_excluded_region = True
         self.last_position_excluded[:] = newpos
         self.last_position[:] = newpos
 
     def _move_from_excluded_region(self, newpos, speed):
-        logging.debug("Moving to included object: " + (self.current_object or "---"))
-        logging.debug("last position: " + " ".join(str(x) for x in self.last_position))
-        logging.debug("last extruded position: " + " ".join(str(x) for x in self.last_position_extruded))
-        logging.debug("last excluded position: " + " ".join(str(x) for x in self.last_position_excluded))
-        logging.debug("New position: " + " ".join(str(x) for x in newpos))
-        if self.last_position[0] == newpos[0] and self.last_position[1] == newpos[1]:
-            # If the X,Y position didn't change for this transitional move, assume that this move
-            # should happen at the last extruded location
+        logging.debug("Moving to included object: %s",
+                      (self.current_object or "---"))
+        logging.debug("last position: %s",
+                      " ".join(str(x) for x in self.last_position))
+        logging.debug("last extruded position: %s",
+                      " ".join(str(x) for x in self.last_position_extruded))
+        logging.debug("last excluded position: %s",
+                      " ".join(str(x) for x in self.last_position_excluded))
+        logging.debug("New position: %s", " ".join(str(x) for x in newpos))
+        if self.last_position[0] == newpos[0] and \
+                self.last_position[1] == newpos[1]:
+            # If the X,Y position didn't change for this transitional move,
+            #  assume that this move should happen at the last extruded location
             newpos[0] = self.last_position_extruded[0]
             newpos[1] = self.last_position_extruded[1]
-        newpos[3] = newpos[3] - self.last_position_excluded[3] + self.last_position_extruded[3]
+        newpos[3] = newpos[3] - self.last_position_excluded[3] + \
+                    self.last_position_extruded[3]
         logging.debug("Modified position: " + " ".join(str(x) for x in newpos))
         self.last_position[:] = newpos
         self.last_position_extruded[:] = newpos
@@ -124,25 +132,31 @@ class ExcludeObject:
             else:
                 self._normal_move(newpos, speed)
 
-    cmd_START_CURRENT_OBJECT_help = "Marks the beginning the current object as labeled"
+    cmd_START_CURRENT_OBJECT_help = "Marks the beginning the current object" \
+                                    " as labeled"
     def cmd_START_CURRENT_OBJECT(self, params):
         name = params.get('NAME').upper()
         self.current_object = name
     cmd_END_CURRENT_OBJECT_help = "Markes the end the current object"
     def cmd_END_CURRENT_OBJECT(self, gcmd):
         if self.current_object == None:
-            gcmd.respond_info("END_CURRENT_OBJECT called, but no object is currently active")
+            gcmd.respond_info("END_CURRENT_OBJECT called, but no object is"
+                              " currently active")
             return
         name = gcmd.get('NAME', default=None)
         if name != None and name.upper() != self.current_object:
-            gcmd.respond_info("END_CURRENT_OBJECT NAME=%s does not match current objet NAME=%s" % (name.upper(), self.current_object))
+            gcmd.respond_info("END_CURRENT_OBJECT NAME=%s does not match the"
+                              " current object NAME=%s" %
+                              (name.upper(), self.current_object))
         self.current_object = None
     cmd_EXCLUDE_OBJECT_help = "Cancel moves inside a specified objects"
     def cmd_EXCLUDE_OBJECT(self, params):
         name = params.get('NAME').upper()
         if name not in self.excluded_objects:
             self.excluded_objects.append(name)
-    cmd_EXCLUDE_OBJECT_RESET_help = "Resets the exclude_object state by clearing the list of object definitions and removed objects"
+    cmd_EXCLUDE_OBJECT_RESET_help = "Resets the exclude_object state by" \
+                                    " clearing the list of object definitions" \
+                                    " and removed objects"
     def cmd_EXCLUDE_OBJECT_RESET(self, params):
         self._reset_file()
     cmd_LIST_OBJECTS_help = "Lists the known objects"
@@ -175,7 +189,7 @@ class ExcludeObject:
         if polygon != None:
             obj['polygon'] = json.loads(polygon)
 
-        logging.debug('Object {} defined {}', name, json.dumps(obj))
+        logging.debug('Object %s defined %r', name, obj)
         self.objects[name] = obj
 
 
